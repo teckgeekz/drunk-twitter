@@ -6,6 +6,7 @@ import { SignInModal } from "./SignInModal";
 import { LogIn, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { Beer } from "lucide-react";
 
 export function Header() {
   const { user, loading } = useAuth();
@@ -25,9 +26,9 @@ export function Header() {
         <div className="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="font-bold text-xl tracking-tight text-white flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-black">
-              B
+              <Beer size={32} />
             </div>
-            BhangBosdha
+            Drunk Twitter
           </div>
 
           {!loading && (
