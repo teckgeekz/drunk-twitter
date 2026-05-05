@@ -46,7 +46,7 @@ export function PermissionsModal({ isOpen, onClose, onGranted }: PermissionsModa
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative w-full max-w-md bg-surface border border-white/10 rounded-[2.5rem] p-8 shadow-2xl overflow-hidden"
+            className="relative w-full max-w-md bg-surface border border-white/10 rounded-3xl sm:rounded-[2.5rem] p-6 sm:p-8 shadow-2xl overflow-hidden"
           >
             {/* Background Glow */}
             <div className="absolute -top-24 -left-24 w-48 h-48 bg-primary/20 rounded-full blur-[80px]" />
