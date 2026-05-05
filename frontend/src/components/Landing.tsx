@@ -8,15 +8,15 @@ import { useState, useEffect } from "react";
 const FloatingPost = ({ text, handle, delay, top, left, rotation }: any) => (
   <motion.div
     initial={{ opacity: 0, y: 50, rotate: rotation - 10 }}
-    animate={{ 
+    animate={{
       opacity: [0, 0.4, 0.4, 0],
       y: [-50, -150],
       x: [0, Math.random() * 50 - 25],
       rotate: [rotation, rotation + (Math.random() * 20 - 10)]
     }}
-    transition={{ 
-      duration: 8, 
-      delay, 
+    transition={{
+      duration: 8,
+      delay,
       repeat: Infinity,
       ease: "linear"
     }}
@@ -92,7 +92,7 @@ export function Landing() {
   return (
     <>
       <div className="relative flex-1 flex flex-col items-center max-w-6xl mx-auto px-4 py-16 sm:py-24 overflow-hidden min-h-screen">
-        
+
         {/* Background ambient glows */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/20 rounded-full blur-[120px] pointer-events-none" />
@@ -102,7 +102,7 @@ export function Landing() {
           <FloatingPost key={i} {...post} />
         ))}
 
-        <motion.div 
+        <motion.div
           animate={{ x: mousePosition.x, y: mousePosition.y }}
           transition={{ type: "spring", stiffness: 50, damping: 20 }}
           className="text-center max-w-4xl mb-24 relative z-10 mt-10"
@@ -122,11 +122,11 @@ export function Landing() {
               Twitter.
             </span>
           </h1>
-          
+
           <p className="text-xl sm:text-2xl text-text-muted mb-12 leading-relaxed max-w-2xl mx-auto font-medium">
             The microblogging platform where your inner voice gets a megaphone. No algorithms. No likes. Just raw thoughts.
           </p>
-          
+
           <motion.button
             whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(139, 92, 246, 0.6)" }}
             whileTap={{ scale: 0.95 }}
@@ -151,7 +151,7 @@ export function Landing() {
               className="glass p-8 rounded-3xl border border-white/5 hover:border-primary/50 transition-all group overflow-hidden relative"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-[50px] group-hover:bg-primary/20 transition-colors" />
-              
+
               <div className="w-16 h-16 rounded-2xl bg-surface border border-white/10 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all shadow-lg relative z-10">
                 {feature.icon}
               </div>
@@ -162,14 +162,14 @@ export function Landing() {
         </div>
 
         {/* Footer / Credits */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           className="mt-32 text-center relative z-10 pb-10"
         >
           <p className="text-text-muted text-sm font-medium">
-            Engineered for chaos by <a href="https://teckgeekz.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-white transition-colors font-bold border-b border-primary/30 hover:border-white">TeckGeekz</a>
+            Engineered for chaos by <a href="#" target="_blank" rel="noopener noreferrer" className="text-primary hover:text-white transition-colors font-bold border-b border-primary/30 hover:border-white"><Beer /></a>
           </p>
         </motion.div>
       </div>
