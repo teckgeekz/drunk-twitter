@@ -12,12 +12,16 @@ export interface Post {
   authorHandle?: string;
   content: string;
   createdAt: string;
+  replyToId?: string;
+  replyToHandle?: string;
 }
 
-export function PostItem({ post, isSuperAdmin, onDelete }: { 
+export function PostItem({ post, isSuperAdmin, currentUserId, onDelete, onReply }: { 
   post: Post; 
   isSuperAdmin?: boolean;
+  currentUserId?: string;
   onDelete?: (postId: string) => void;
+  onReply?: (post: Post) => void;
 }) {
   const timeAgo = formatDistanceToNow(new Date(post.createdAt), { addSuffix: true });
   const [deleting, setDeleting] = useState(false);
@@ -25,6 +29,12 @@ export function PostItem({ post, isSuperAdmin, onDelete }: {
   
   const displayName = post.authorName || `User ${post.userId.substring(0, 6)}...`;
   const avatarLetter = displayName[0].toUpperCase();
+
+  const postDate = new Date(post.createdAt);
+  const hour = postDate.getHours();
+  const isCertifiedDrunk = hour >= 1 && hour < 5;
+
+  const canDelete = isSuperAdmin || currentUserId === post.userId;
 
   const renderContent = (text: string) => {
     const parts = text.split(/(@[a-z0-9_]{3,30})/gi);
@@ -60,14 +70,23 @@ export function PostItem({ post, isSuperAdmin, onDelete }: {
           {avatarLetter}
         </div>
         <div className="flex-1 min-w-0">
+          {post.replyToHandle && (
+            <div className="flex items-center gap-1 text-xs text-text-muted mb-1">
+              <span>Replying to</span>
+              <span className="text-primary">@{post.replyToHandle}</span>
+            </div>
+          )}
           <div className="flex items-baseline gap-2 mb-1 flex-wrap">
-            <span className="font-bold text-white truncate">{displayName}</span>
+            <span className="font-bold text-white truncate flex items-center gap-1">
+              {displayName}
+              {isCertifiedDrunk && <span title="Certified Drunk (Posted 1AM - 5AM)" className="text-sm">🍻</span>}
+            </span>
             {post.authorHandle && (
               <span className="text-sm text-text-muted truncate">@{post.authorHandle}</span>
             )}
             <span className="text-sm text-text-muted flex-shrink-0">· {timeAgo}</span>
             
-            {isSuperAdmin && (
+            {canDelete && (
               <motion.button
                 whileTap={{ scale: 0.9 }}
                 onClick={handleDelete}
@@ -86,6 +105,17 @@ export function PostItem({ post, isSuperAdmin, onDelete }: {
           <div className="text-white text-base leading-relaxed break-words whitespace-pre-wrap">
             {renderContent(post.content)}
           </div>
+          
+          {onReply && currentUserId && (
+            <div className="mt-3 flex items-center">
+              <button 
+                onClick={() => onReply(post)}
+                className="text-text-muted hover:text-primary transition-colors text-sm font-medium flex items-center gap-1"
+              >
+                Reply
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </motion.div>

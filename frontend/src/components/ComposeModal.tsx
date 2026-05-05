@@ -6,10 +6,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Send, AlertCircle } from "lucide-react";
 import { auth } from "@/lib/firebase";
 
-export function ComposeModal({ isOpen, onClose, onPostSuccess }: {
+import { Post } from "./PostItem";
+
+export function ComposeModal({ isOpen, onClose, onPostSuccess, replyTo }: {
   isOpen: boolean;
   onClose: () => void;
   onPostSuccess?: (post: any) => void;
+  replyTo?: Post;
 }) {
   const { user } = useAuth();
   const [content, setContent] = useState("");
@@ -51,7 +54,10 @@ export function ComposeModal({ isOpen, onClose, onPostSuccess }: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ content: content.trim() })
+        body: JSON.stringify({ 
+          content: content.trim(),
+          ...(replyTo && { replyToId: replyTo.id, replyToHandle: replyTo.authorHandle || replyTo.authorName })
+        })
       });
 
       const data = await res.json();
@@ -91,9 +97,12 @@ export function ComposeModal({ isOpen, onClose, onPostSuccess }: {
           
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: -20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
+            animate={
+              error && error.includes("Wait a minute") 
+                ? { x: [-10, 10, -10, 10, 0], transition: { duration: 0.4 } }
+                : { opacity: 1, scale: 1, y: 0 }
+            }
             exit={{ opacity: 0, scale: 0.95, y: -20 }}
-            transition={{ duration: 0.2 }}
             className="relative w-full max-w-lg glass rounded-3xl border border-white/10 shadow-2xl overflow-hidden"
           >
             <div className="flex items-center justify-between p-4 border-b border-white/5">
@@ -117,6 +126,12 @@ export function ComposeModal({ isOpen, onClose, onPostSuccess }: {
             </div>
 
             <div className="p-4">
+              {replyTo && (
+                <div className="flex items-center gap-2 mb-4 text-sm text-text-muted">
+                  <span>Replying to</span>
+                  <span className="text-primary font-medium">@{replyTo.authorHandle || replyTo.authorName}</span>
+                </div>
+              )}
               <div className="flex gap-4">
                 <div className="w-10 h-10 rounded-full bg-surface-hover flex-shrink-0 flex items-center justify-center font-bold text-lg text-primary">
                   {avatarLetter}
@@ -126,7 +141,7 @@ export function ComposeModal({ isOpen, onClose, onPostSuccess }: {
                     ref={textareaRef}
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
-                    placeholder="What's happening?"
+                    placeholder={replyTo ? "Write your reply..." : "What's happening?"}
                     className="w-full bg-transparent text-white text-lg placeholder:text-text-muted resize-none focus:outline-none min-h-[120px] overflow-hidden"
                     disabled={isSubmitting}
                   />

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { PostItem, Post } from "./PostItem";
 import { PostBox } from "./PostBox";
+import { PostItem, Post } from "./PostItem";
+import { ComposeModal } from "./ComposeModal";
 import { useAuth } from "./AuthProvider";
 import { AnimatePresence } from "framer-motion";
 
@@ -14,6 +15,7 @@ export function Feed() {
   const [hasMore, setHasMore] = useState(true);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [replyPost, setReplyPost] = useState<Post | null>(null);
   
   const observer = useRef<IntersectionObserver | null>(null);
 
@@ -160,16 +162,26 @@ export function Feed() {
         ) : (
           <AnimatePresence initial={false}>
             {posts.map((post, index) => {
+              const currentUserId = user?.uid;
               if (posts.length === index + 1) {
                 return (
                   <div ref={lastPostElementRef} key={post.id}>
-                    <PostItem post={post} isSuperAdmin={isSuperAdmin} onDelete={handleDelete} />
+                    <PostItem post={post} isSuperAdmin={isSuperAdmin} currentUserId={currentUserId} onDelete={handleDelete} onReply={setReplyPost} />
                   </div>
                 );
               }
-              return <PostItem key={post.id} post={post} isSuperAdmin={isSuperAdmin} onDelete={handleDelete} />;
+              return <PostItem key={post.id} post={post} isSuperAdmin={isSuperAdmin} currentUserId={currentUserId} onDelete={handleDelete} onReply={setReplyPost} />;
             })}
           </AnimatePresence>
+        )}
+        
+        {replyPost && (
+          <ComposeModal 
+            isOpen={!!replyPost} 
+            onClose={() => setReplyPost(null)} 
+            onPostSuccess={handlePostSuccess}
+            replyTo={replyPost}
+          />
         )}
         
         {loadingMore && (

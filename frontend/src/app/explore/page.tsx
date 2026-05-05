@@ -3,6 +3,7 @@
 import { AppLayout } from "@/components/AppLayout";
 import { Feed } from "@/components/Feed";
 import { PostItem, Post } from "@/components/PostItem";
+import { ComposeModal } from "@/components/ComposeModal";
 import { useAuth } from "@/components/AuthProvider";
 import { Search } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
@@ -15,6 +16,7 @@ export default function ExplorePage() {
   const [searching, setSearching] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [replyPost, setReplyPost] = useState<Post | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Check admin status
@@ -128,13 +130,21 @@ export default function ExplorePage() {
           ) : (
             <AnimatePresence initial={false}>
               {searchResults.map(post => (
-                <PostItem key={post.id} post={post} isSuperAdmin={isSuperAdmin} onDelete={handleDelete} />
+                <PostItem key={post.id} post={post} isSuperAdmin={isSuperAdmin} currentUserId={user?.uid} onDelete={handleDelete} onReply={setReplyPost} />
               ))}
             </AnimatePresence>
           )}
         </div>
       ) : (
         <Feed />
+      )}
+
+      {replyPost && (
+        <ComposeModal 
+          isOpen={!!replyPost} 
+          onClose={() => setReplyPost(null)} 
+          replyTo={replyPost}
+        />
       )}
     </AppLayout>
   );

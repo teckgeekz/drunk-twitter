@@ -3,9 +3,10 @@
 import { AppLayout } from "@/components/AppLayout";
 import { useAuth } from "@/components/AuthProvider";
 import { PostItem, Post } from "@/components/PostItem";
+import { ComposeModal } from "@/components/ComposeModal";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Pencil, Check, X, AlertCircle, Loader2 } from "lucide-react";
+import { Pencil, Check, X, AlertCircle, Loader2, Bomb } from "lucide-react";
 
 interface UserProfile {
   userId: string;
@@ -23,6 +24,10 @@ export default function ProfilePage() {
   const [hasMore, setHasMore] = useState(true);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const observer = useRef<IntersectionObserver | null>(null);
+  
+  const [replyPost, setReplyPost] = useState<Post | null>(null);
+  const [nuking, setNuking] = useState(false);
+  const [confirmNuke, setConfirmNuke] = useState(false);
 
   // Edit state
   const [isEditing, setIsEditing] = useState(false);
@@ -134,6 +139,52 @@ export default function ProfilePage() {
         setCheckingHandle(false);
       }
     }, 500);
+  };
+
+  const handleNuke = async () => {
+    if (!confirmNuke) {
+      setConfirmNuke(true);
+      setTimeout(() => setConfirmNuke(false), 3000);
+      return;
+    }
+
+    if (!user) return;
+    setNuking(true);
+    try {
+      const token = await user.getIdToken();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const res = await fetch(`${apiUrl}/api/posts/nuke`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        // Clear recent posts from the UI
+        const twelveHoursAgo = Date.now() - 12 * 60 * 60 * 1000;
+        setPosts(prev => prev.filter(p => new Date(p.createdAt).getTime() < twelveHoursAgo));
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setNuking(false);
+      setConfirmNuke(false);
+    }
+  };
+
+  const handleDelete = async (postId: string) => {
+    if (!user) return;
+    try {
+      const token = await user.getIdToken();
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const res = await fetch(`${apiUrl}/api/posts/${postId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setPosts(prev => prev.filter(p => p.id !== postId));
+      }
+    } catch (err) {
+      console.error("Delete failed", err);
+    }
   };
 
   // Save profile
@@ -288,6 +339,33 @@ export default function ProfilePage() {
             <span className="text-xs text-text-muted bg-surface px-3 py-1 rounded-full">Profile locked</span>
           )}
         </div>
+        
+        {/* Nuke Button */}
+        {!isEditing && (
+          <div className="mt-6 p-4 rounded-xl border border-red-500/20 bg-red-500/5 flex items-center justify-between">
+            <div>
+              <h3 className="text-red-400 font-bold flex items-center gap-2">
+                <Bomb size={16} />
+                Morning After Regret?
+              </h3>
+              <p className="text-xs text-text-muted mt-1 max-w-sm">
+                Instantly delete all posts you've made in the last 12 hours. This cannot be undone.
+              </p>
+            </div>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleNuke}
+              disabled={nuking}
+              className={`px-4 py-2 rounded-lg font-bold text-sm transition-colors ${
+                confirmNuke 
+                  ? "bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.5)] animate-pulse" 
+                  : "bg-surface-hover text-red-400 hover:bg-red-500/10 border border-red-500/30"
+              }`}
+            >
+              {nuking ? "Nuking..." : confirmNuke ? "Click to confirm ☢️" : "Nuke My Night ☢️"}
+            </motion.button>
+          </div>
+        )}
       </div>
 
       {/* Posts */}
@@ -315,11 +393,11 @@ export default function ProfilePage() {
               if (posts.length === index + 1) {
                 return (
                   <div ref={lastPostRef} key={post.id}>
-                    <PostItem post={post} />
+                    <PostItem post={post} currentUserId={user?.uid} onDelete={handleDelete} onReply={setReplyPost} />
                   </div>
                 );
               }
-              return <PostItem key={post.id} post={post} />;
+              return <PostItem key={post.id} post={post} currentUserId={user?.uid} onDelete={handleDelete} onReply={setReplyPost} />;
             })}
           </AnimatePresence>
         )}
@@ -328,6 +406,14 @@ export default function ProfilePage() {
           <div className="p-4 text-center text-text-muted animate-pulse">Loading more...</div>
         )}
       </div>
+
+      {replyPost && (
+        <ComposeModal 
+          isOpen={!!replyPost} 
+          onClose={() => setReplyPost(null)} 
+          replyTo={replyPost}
+        />
+      )}
     </AppLayout>
   );
 }

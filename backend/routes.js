@@ -179,7 +179,7 @@ async function routes(fastify, options) {
 
   // ─── POST /api/posts ───
   fastify.post('/posts', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { content } = request.body || {};
+    const { content, replyToId, replyToHandle } = request.body || {};
     if (!content || typeof content !== 'string') {
       return reply.code(400).send({ error: true, message: 'Content is required and must be a string' });
     }
@@ -204,7 +204,11 @@ async function routes(fastify, options) {
     const count = results[2];
     
     if (count > 5) {
-      return reply.code(429).send({ error: true, message: 'Rate limit exceeded: 5 posts per minute' });
+      return reply.code(429).send({ 
+        error: true, 
+        message: "Whoa, slow down! You've had too much. Wait a minute before posting again 🛑🍺",
+        code: "BREATHALYZER"
+      });
     }
 
     // Get user profile for author info
@@ -216,7 +220,9 @@ async function routes(fastify, options) {
       authorName: profile.displayName,
       authorHandle: profile.handle,
       content: sanitizedContent,
-      createdAt: new Date(now)
+      createdAt: new Date(now),
+      ...(replyToId && { replyToId }),
+      ...(replyToHandle && { replyToHandle })
     };
     const insertResult = await db.collection('posts').insertOne(postDoc);
 
@@ -226,7 +232,9 @@ async function routes(fastify, options) {
       authorName: profile.displayName,
       authorHandle: profile.handle,
       content: sanitizedContent,
-      createdAt: postDoc.createdAt.toISOString()
+      createdAt: postDoc.createdAt.toISOString(),
+      ...(replyToId && { replyToId }),
+      ...(replyToHandle && { replyToHandle })
     };
 
     // Extract @mentions and create notifications
@@ -403,15 +411,69 @@ async function routes(fastify, options) {
     return { count };
   });
 
-  // ─── DELETE /api/posts/:id (Super Admin Only) ───
-  fastify.delete('/posts/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    if (!request.user.isSuperAdmin) {
-      return reply.code(403).send({ error: true, message: 'Forbidden: Super Admin access required' });
-    }
-
-    const postId = request.params.id;
+  // ─── DELETE /api/posts/nuke (Nuke My Night) ───
+  fastify.delete('/posts/nuke', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const userId = request.user.userId;
+    const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
     
     try {
+      // Find posts to delete
+      const postsToDelete = await db.collection('posts').find({
+        userId,
+        createdAt: { $gte: twelveHoursAgo }
+      }).toArray();
+      
+      const postIds = postsToDelete.map(p => p._id.toString());
+      
+      if (postIds.length === 0) {
+        return { success: true, message: 'No posts to nuke.', deletedCount: 0 };
+      }
+
+      // Delete from MongoDB
+      await db.collection('posts').deleteMany({
+        userId,
+        createdAt: { $gte: twelveHoursAgo }
+      });
+
+      // Delete from notifications related to these posts
+      await db.collection('notifications').deleteMany({
+        postId: { $in: postIds }
+      });
+
+      // Remove from Redis feed
+      const cachedPosts = await redis.lRange('feed:global', 0, -1);
+      for (const cached of cachedPosts) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (postIds.includes(parsed.id)) {
+            await redis.lRem('feed:global', 1, cached);
+          }
+        } catch { /* skip */ }
+      }
+
+      return { success: true, message: 'Your night has been nuked ☢️', deletedCount: postIds.length };
+    } catch (err) {
+      fastify.log.error(err);
+      return reply.code(500).send({ error: true, message: 'Failed to nuke posts' });
+    }
+  });
+
+  // ─── DELETE /api/posts/:id (Author or Super Admin) ───
+  fastify.delete('/posts/:id', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const postId = request.params.id;
+    const isSuperAdmin = request.user.isSuperAdmin;
+    const userId = request.user.userId;
+
+    try {
+      const post = await db.collection('posts').findOne({ _id: new ObjectId(postId) });
+      if (!post) {
+        return reply.code(404).send({ error: true, message: 'Post not found' });
+      }
+
+      // Allow deletion if user is author OR super admin
+      if (post.userId !== userId && !isSuperAdmin) {
+        return reply.code(403).send({ error: true, message: 'Forbidden: You can only delete your own posts' });
+      }
       // Delete from MongoDB
       const result = await db.collection('posts').deleteOne({ _id: new ObjectId(postId) });
       if (result.deletedCount === 0) {

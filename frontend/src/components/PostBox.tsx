@@ -89,9 +89,13 @@ export function PostBox({ onPostSuccess }: { onPostSuccess: (post: any) => void 
             {error && (
               <motion.div 
                 initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
+                animate={
+                  error.includes("Wait a minute")
+                    ? { opacity: 1, height: "auto", x: [-10, 10, -10, 10, 0], transition: { duration: 0.4 } }
+                    : { opacity: 1, height: "auto" }
+                }
                 exit={{ opacity: 0, height: 0 }}
-                className="text-error text-sm flex items-center gap-1 mt-2 mb-2"
+                className="text-error text-sm flex items-center gap-1 mt-2 mb-2 bg-error/10 p-2 rounded-lg"
               >
                 <AlertCircle size={14} />
                 <span>{error}</span>
