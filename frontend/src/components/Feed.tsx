@@ -6,6 +6,7 @@ import { PostItem, Post } from "./PostItem";
 import { ComposeModal } from "./ComposeModal";
 import { useAuth } from "./AuthProvider";
 import { AnimatePresence } from "framer-motion";
+import { getApiUrl } from "@/lib/api";
 
 export function Feed() {
   const { user } = useAuth();
@@ -28,7 +29,7 @@ export function Feed() {
     const checkAdmin = async () => {
       try {
         const token = await user.getIdToken();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+        const apiUrl = getApiUrl();
         const res = await fetch(`${apiUrl}/api/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -45,7 +46,7 @@ export function Feed() {
 
   const fetchPosts = async (cursor: string | null = null, isInitial = false) => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const apiUrl = getApiUrl();
       const url = new URL(`${apiUrl}/api/feed`);
       if (cursor) {
         url.searchParams.append("cursor", cursor);
@@ -85,7 +86,7 @@ export function Feed() {
 
   const fetchLatestPosts = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/feed`);
       if (!res.ok) return;
       const data = await res.json();
@@ -128,7 +129,7 @@ export function Feed() {
     if (!user) return;
     try {
       const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/posts/${postId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }

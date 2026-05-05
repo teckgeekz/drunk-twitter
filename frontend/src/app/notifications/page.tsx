@@ -5,6 +5,7 @@ import { useAuth } from "@/components/AuthProvider";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, AtSign } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
 
 interface Notification {
@@ -28,7 +29,7 @@ export default function NotificationsPage() {
     const fetchNotifications = async () => {
       try {
         const token = await user.getIdToken();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+        const apiUrl = getApiUrl();
         const res = await fetch(`${apiUrl}/api/notifications`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -48,7 +49,7 @@ export default function NotificationsPage() {
     const markRead = async () => {
       try {
         const token = await user.getIdToken();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+        const apiUrl = getApiUrl();
         await fetch(`${apiUrl}/api/notifications/read`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` }

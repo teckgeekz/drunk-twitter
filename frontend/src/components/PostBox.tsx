@@ -5,6 +5,7 @@ import { useAuth } from "./AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, AlertCircle } from "lucide-react";
 import { auth } from "@/lib/firebase";
+import { getApiUrl } from "@/lib/api";
 
 export function PostBox({ onPostSuccess }: { onPostSuccess: (post: any) => void }) {
   const { user } = useAuth();
@@ -34,7 +35,7 @@ export function PostBox({ onPostSuccess }: { onPostSuccess: (post: any) => void 
 
     try {
       const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const apiUrl = getApiUrl();
       
       const res = await fetch(`${apiUrl}/api/posts`, {
         method: "POST",

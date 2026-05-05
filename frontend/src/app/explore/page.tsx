@@ -5,7 +5,8 @@ import { Feed } from "@/components/Feed";
 import { PostItem, Post } from "@/components/PostItem";
 import { ComposeModal } from "@/components/ComposeModal";
 import { useAuth } from "@/components/AuthProvider";
-import { Search } from "lucide-react";
+import { Search, Loader2, TrendingUp, AlertCircle } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 import { useState, useEffect, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 
@@ -25,7 +26,7 @@ export default function ExplorePage() {
     const checkAdmin = async () => {
       try {
         const token = await user.getIdToken();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const apiUrl = getApiUrl();
         const res = await fetch(`${apiUrl}/api/me`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -51,7 +52,7 @@ export default function ExplorePage() {
     setSearching(true);
     debounceRef.current = setTimeout(async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const apiUrl = getApiUrl();
         const res = await fetch(`${apiUrl}/api/search?q=${encodeURIComponent(searchQuery.trim())}`);
         if (res.ok) {
           const data = await res.json();
@@ -74,7 +75,7 @@ export default function ExplorePage() {
     if (!user) return;
     try {
       const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/posts/${postId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }

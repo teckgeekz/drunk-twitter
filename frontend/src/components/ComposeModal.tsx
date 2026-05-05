@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "./AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Send, AlertCircle } from "lucide-react";
+import { X, Send, AlertCircle, Loader2 } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 import { auth } from "@/lib/firebase";
 
 import { Post } from "./PostItem";
@@ -46,7 +47,7 @@ export function ComposeModal({ isOpen, onClose, onPostSuccess, replyTo }: {
 
     try {
       const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const apiUrl = getApiUrl();
       
       const res = await fetch(`${apiUrl}/api/posts`, {
         method: "POST",

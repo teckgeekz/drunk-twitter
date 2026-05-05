@@ -7,6 +7,7 @@ import { ComposeModal } from "@/components/ComposeModal";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { Pencil, Check, X, AlertCircle, Loader2, Bomb } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 
 interface UserProfile {
   userId: string;
@@ -45,7 +46,7 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
       try {
         const token = await user.getIdToken();
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+        const apiUrl = getApiUrl();
         const res = await fetch(`${apiUrl}/api/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -66,7 +67,7 @@ export default function ProfilePage() {
   const fetchMyPosts = async (cursor: string | null = null, isInitial = false) => {
     if (!user) return;
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const apiUrl = getApiUrl();
       const url = new URL(`${apiUrl}/api/feed`);
       if (cursor) url.searchParams.append("cursor", cursor);
 
@@ -129,7 +130,7 @@ export default function ProfilePage() {
     setCheckingHandle(true);
     handleCheckTimer.current = setTimeout(async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+        const apiUrl = getApiUrl();
         const res = await fetch(`${apiUrl}/api/handle/check?handle=${encodeURIComponent(clean)}`);
         const data = await res.json();
         setHandleAvailable(data.available);
@@ -152,7 +153,7 @@ export default function ProfilePage() {
     setNuking(true);
     try {
       const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/posts/nuke`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
@@ -174,7 +175,7 @@ export default function ProfilePage() {
     if (!user) return;
     try {
       const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/posts/${postId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
@@ -195,7 +196,7 @@ export default function ProfilePage() {
 
     try {
       const token = await user.getIdToken();
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const apiUrl = getApiUrl();
       const res = await fetch(`${apiUrl}/api/profile`, {
         method: "PUT",
         headers: {
