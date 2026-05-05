@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+
+# Block crawlers from accessing the API directly or private pages
+Disallow: /api/
+Disallow: /settings
+Disallow: /notifications
+Disallow: /saved
+
+# If you create a sitemap later, uncomment and update this line
+# Sitemap: https://bhangbhosdha.com/sitemap.xml
