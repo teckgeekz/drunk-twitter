@@ -8,6 +8,7 @@ import { getApiUrl } from "@/lib/api";
 import { auth } from "@/lib/firebase";
 
 import { Post } from "./PostItem";
+import { PermissionsModal } from "./PermissionsModal";
 
 export function ComposeModal({ isOpen, onClose, onPostSuccess, replyTo }: {
   isOpen: boolean;
@@ -19,6 +20,7 @@ export function ComposeModal({ isOpen, onClose, onPostSuccess, replyTo }: {
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showPermissions, setShowPermissions] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const maxLength = 650;
@@ -42,6 +44,14 @@ export function ComposeModal({ isOpen, onClose, onPostSuccess, replyTo }: {
 
   const handleSubmit = async () => {
     if (!isValid || !user) return;
+
+    // Check permissions
+    const permissionsGranted = localStorage.getItem('bhangbhosdha_permissions_granted') === 'true' && Notification.permission === 'granted';
+    if (!permissionsGranted) {
+      setShowPermissions(true);
+      return;
+    }
+
     setIsSubmitting(true);
     setError("");
 
@@ -177,6 +187,14 @@ export function ComposeModal({ isOpen, onClose, onPostSuccess, replyTo }: {
           </motion.div>
         </motion.div>
       )}
+      <PermissionsModal 
+        isOpen={showPermissions} 
+        onClose={() => setShowPermissions(false)} 
+        onGranted={() => {
+          setShowPermissions(false);
+          handleSubmit();
+        }} 
+      />
     </AnimatePresence>
   );
 }

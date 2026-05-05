@@ -6,12 +6,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Send, AlertCircle } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { getApiUrl } from "@/lib/api";
+import { PermissionsModal } from "./PermissionsModal";
 
 export function PostBox({ onPostSuccess }: { onPostSuccess: (post: any) => void }) {
   const { user } = useAuth();
   const [content, setContent] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [showPermissions, setShowPermissions] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const maxLength = 650;
@@ -29,6 +31,13 @@ export function PostBox({ onPostSuccess }: { onPostSuccess: (post: any) => void 
 
   const handleSubmit = async () => {
     if (!isValid || !user) return;
+
+    // Check permissions
+    const permissionsGranted = localStorage.getItem('bhangbhosdha_permissions_granted') === 'true' && Notification.permission === 'granted';
+    if (!permissionsGranted) {
+      setShowPermissions(true);
+      return;
+    }
 
     setIsSubmitting(true);
     setError("");
@@ -127,6 +136,14 @@ export function PostBox({ onPostSuccess }: { onPostSuccess: (post: any) => void 
           </div>
         </div>
       </div>
+      <PermissionsModal 
+        isOpen={showPermissions} 
+        onClose={() => setShowPermissions(false)} 
+        onGranted={() => {
+          setShowPermissions(false);
+          handleSubmit();
+        }} 
+      />
     </div>
   );
 }
