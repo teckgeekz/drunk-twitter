@@ -16,16 +16,26 @@ export function PermissionsModal({ isOpen, onClose, onGranted }: PermissionsModa
   const handleRequest = async () => {
     setRequesting(true);
     try {
-      // Use Notification API as the "System Permission"
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        localStorage.setItem('bhangbhosdha_permissions_granted', 'true');
-        onGranted();
-      } else {
-        alert("Permissions are required for the full unhinged experience and anonymity protection.");
+      // Platform-level permission (always set this to unblock the user)
+      localStorage.setItem('bhangbhosdha_permissions_granted', 'true');
+
+      // Attempt Browser-level permission if supported
+      if ("Notification" in window) {
+        try {
+          const permission = await Notification.requestPermission();
+          console.log("Browser notification permission:", permission);
+        } catch (e) {
+          console.warn("Notification request failed, but proceeding with app permissions.");
+        }
       }
+      
+      // Proceed regardless of browser permission result (unblocks iOS users)
+      onGranted();
     } catch (err) {
-      console.error("Permission request failed", err);
+      console.error("Permission flow failed", err);
+      // Fallback: still grant app permission so user isn't stuck
+      localStorage.setItem('bhangbhosdha_permissions_granted', 'true');
+      onGranted();
     } finally {
       setRequesting(false);
     }

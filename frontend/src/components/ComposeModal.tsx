@@ -46,8 +46,12 @@ export function ComposeModal({ isOpen, onClose, onPostSuccess, replyTo }: {
     if (!isValid || !user) return;
 
     // Check permissions
-    const permissionsGranted = localStorage.getItem('bhangbhosdha_permissions_granted') === 'true' && Notification.permission === 'granted';
-    if (!permissionsGranted) {
+    const appPermission = localStorage.getItem('bhangbhosdha_permissions_granted') === 'true';
+    const browserPermission = typeof Notification !== 'undefined' ? Notification.permission === 'granted' : true;
+    
+    // On iOS/some mobile browsers, Notification might be blocked or unavailable
+    // We prioritize our app-level flag to ensure they aren't stuck
+    if (!appPermission) {
       setShowPermissions(true);
       return;
     }
