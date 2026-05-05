@@ -7,5 +7,12 @@ Disallow: /settings
 Disallow: /notifications
 Disallow: /saved
 
+# Explicit allow for Facebook
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Facebot
+Allow: /
+
 # If you create a sitemap later, uncomment and update this line
 # Sitemap: https://bhangbhosdha.com/sitemap.xml
