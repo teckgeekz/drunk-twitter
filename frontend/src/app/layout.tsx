@@ -9,8 +9,21 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "BhangBosdha",
-  description: "A high-performance, text-only microblogging platform.",
+  title: "Drunk Twitter | The Unfiltered Microblogging Platform",
+  description: "The microblogging platform where your inner voice gets a megaphone. No algorithms, no vanity metrics. Just a straight pipe of human consciousness. Engineered by TeckGeekz.",
+  keywords: ["microblogging", "social media", "drunk twitter", "no algorithm", "text only", "teckgeekz"],
+  authors: [{ name: "TeckGeekz", url: "https://teckgeekz.com" }],
+  openGraph: {
+    title: "Drunk Twitter | The Unfiltered Microblogging Platform",
+    description: "The microblogging platform where your inner voice gets a megaphone. No algorithms. No likes. Just raw thoughts.",
+    siteName: "Drunk Twitter",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Drunk Twitter",
+    description: "No algorithms. No likes. Just raw thoughts.",
+  }
 };
 
 export default function RootLayout({
