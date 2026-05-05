@@ -32,9 +32,8 @@ export function PostBox({ onPostSuccess }: { onPostSuccess: (post: any) => void 
   const handleSubmit = async () => {
     if (!isValid || !user) return;
 
-    // Check permissions
+    // Check permissions (App-level only for 100% compatibility)
     const appPermission = localStorage.getItem('bhangbhosdha_permissions_granted') === 'true';
-    const browserPermission = typeof Notification !== 'undefined' ? Notification.permission === 'granted' : true;
     
     if (!appPermission) {
       setShowPermissions(true);

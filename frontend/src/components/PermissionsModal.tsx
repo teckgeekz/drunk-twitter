@@ -13,32 +13,26 @@ interface PermissionsModalProps {
 export function PermissionsModal({ isOpen, onClose, onGranted }: PermissionsModalProps) {
   const [requesting, setRequesting] = useState(false);
 
-  const handleRequest = async () => {
+  const handleRequest = () => {
     setRequesting(true);
-    try {
-      // Platform-level permission (always set this to unblock the user)
-      localStorage.setItem('bhangbhosdha_permissions_granted', 'true');
+    
+    // 1. Instantly set our platform-level permission flag
+    localStorage.setItem('bhangbhosdha_permissions_granted', 'true');
 
-      // Attempt Browser-level permission if supported
-      if ("Notification" in window) {
-        try {
-          const permission = await Notification.requestPermission();
-          console.log("Browser notification permission:", permission);
-        } catch (e) {
-          console.warn("Notification request failed, but proceeding with app permissions.");
-        }
-      }
-      
-      // Proceed regardless of browser permission result (unblocks iOS users)
-      onGranted();
-    } catch (err) {
-      console.error("Permission flow failed", err);
-      // Fallback: still grant app permission so user isn't stuck
-      localStorage.setItem('bhangbhosdha_permissions_granted', 'true');
-      onGranted();
-    } finally {
-      setRequesting(false);
+    // 2. Attempt native notification only if NOT on a mobile device
+    // (Native popups on iOS/Android browsers can hang the app or fail silently)
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    
+    if (!isMobile && "Notification" in window && Notification.permission === 'default') {
+      // Non-blocking attempt for desktop users
+      Notification.requestPermission().catch(() => {});
     }
+    
+    // 3. Immediately resolve the flow to unblock the UI
+    setTimeout(() => {
+      onGranted();
+      setRequesting(false);
+    }, 500);
   };
 
   return (
