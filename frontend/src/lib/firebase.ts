@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, browserLocalPersistence, setPersistence } from "firebase/auth";
+import { getAnalytics, isSupported } from "firebase/analytics";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,23 +12,30 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-let app;
+let app: any;
 let auth: any;
 let provider: any;
+let analytics: any;
 
 // Initialize Firebase only if we have an API key or if we're not in the Next.js build phase
-// The dummy fallback allows the build to pass if args are still somehow missing
 if (firebaseConfig.apiKey || typeof window !== 'undefined') {
   if (!firebaseConfig.apiKey) {
     firebaseConfig.apiKey = "dummy-key-for-build";
   }
   app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
   auth = getAuth(app);
-  // Persist auth state in IndexedDB so anonymous sessions survive browser restarts
+  
+  // Persist auth state in IndexedDB
   if (typeof window !== 'undefined') {
     setPersistence(auth, browserLocalPersistence).catch(() => {});
+    
+    // Initialize Analytics only in the browser and if supported
+    isSupported().then(yes => {
+      if (yes) analytics = getAnalytics(app);
+    });
   }
+  
   provider = new GoogleAuthProvider();
 }
 
-export { app, auth, provider, signInWithPopup, signOut, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile };
+export { app, auth, provider, analytics, signInWithPopup, signOut, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile };
