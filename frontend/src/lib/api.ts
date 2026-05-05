@@ -4,9 +4,9 @@ export const getApiUrl = () => {
     return process.env.NEXT_PUBLIC_API_URL;
   }
   
-  // In the browser, default to empty string so it uses relative paths (e.g. /api/...)
+  // In the browser, default to origin so it uses absolute paths to the same domain
   if (typeof window !== "undefined") {
-    return "";
+    return window.location.origin;
   }
   
   // On the server (SSR), default to the backend container name if in Docker, 
