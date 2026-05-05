@@ -237,7 +237,7 @@ export default function ProfilePage() {
   const displayName = profile?.displayName || user?.displayName || user?.email?.split('@')[0] || "User";
   const handle = profile?.handle || "";
   const avatarLetter = displayName[0].toUpperCase();
-  const canEdit = profile && !profile.handleEdited;
+  const canEdit = !!profile;
 
   return (
     <AppLayout title="Profile">
@@ -333,10 +333,6 @@ export default function ProfilePage() {
               <Pencil size={14} />
               <span>Edit Profile</span>
             </motion.button>
-          )}
-
-          {!isEditing && profile?.handleEdited && (
-            <span className="text-xs text-text-muted bg-surface px-3 py-1 rounded-full">Profile locked</span>
           )}
         </div>
         

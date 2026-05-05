@@ -116,10 +116,6 @@ async function routes(fastify, options) {
       return reply.code(404).send({ error: true, message: 'Profile not found' });
     }
 
-    if (profile.handleEdited) {
-      return reply.code(403).send({ error: true, message: 'Profile can only be edited once' });
-    }
-
     // Validate handle
     if (!handle || typeof handle !== 'string') {
       return reply.code(400).send({ error: true, message: 'Handle is required' });
