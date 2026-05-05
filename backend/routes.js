@@ -4,12 +4,31 @@ async function routes(fastify, options) {
   const db = fastify.db;
   const redis = fastify.redis;
 
+  // ─── Helper: Generate a Drunk Anonymous Name ───
+  function generateDrunkName() {
+    const adjectives = [
+      'Tipsy', 'Buzzed', 'Wasted', 'Blurred', 'Slurred', 
+      'Drunken', 'Jolly', 'Dizzy', 'Loopy', 'Wobbly', 
+      'Smashed', 'Pickled', 'Toasty', 'Merry', 'Groggy'
+    ];
+    const animals = [
+      'Panda', 'Penguin', 'Koala', 'Sloth', 'Raccoon', 
+      'Squirrel', 'Hedgehog', 'Otter', 'Capybara', 'RedPanda',
+      'Badger', 'Walrus', 'Hippo', 'Beaver', 'T-Rex'
+    ];
+    
+    const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const anim = animals[Math.floor(Math.random() * animals.length)];
+    return `${adj} ${anim}`;
+  }
+
   // ─── Helper: Get or Create User Profile ───
   async function getOrCreateProfile(userId, name, email) {
     let profile = await db.collection('users').findOne({ userId });
     if (!profile) {
-      const baseName = name || email?.split('@')[0] || 'Anonymous';
-      const handle = baseName.toLowerCase().replace(/[^a-z0-9_]/g, '') || `user${Date.now()}`;
+      const isAnonymous = !name && !email;
+      const baseName = name || email?.split('@')[0] || generateDrunkName();
+      const handle = baseName.toLowerCase().replace(/[^a-z0-9_ ]/g, '').replace(/\s+/g, '') || `user${Date.now()}`;
       
       // Ensure handle uniqueness by appending random digits if needed
       let finalHandle = handle;
