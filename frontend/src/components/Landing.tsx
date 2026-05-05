@@ -60,14 +60,24 @@ export function Landing() {
       description: "Generate a ridiculous name like 'NeonPanda99' instantly. Post your spicy takes without the baggage of your real identity."
     },
     {
-      icon: <Type className="w-8 h-8 text-primary" />,
-      title: "Text Only, No Distractions",
-      description: "We stripped away images, videos, likes, and comments. 650 characters of pure text. Make them count."
+      icon: <AtSign className="w-8 h-8 text-primary" />,
+      title: "Messy Arguments",
+      description: "Tag your fellow degenerates with @handles. Our flat reply system ensures everyone sees the drama unfold in real-time."
     },
     {
-      icon: <AtSign className="w-8 h-8 text-primary" />,
-      title: "Mention the Chaos",
-      description: "Tag your fellow degenerates with @handles. They'll get notified. Drama ensues."
+      icon: <Shield className="w-8 h-8 text-primary" />,
+      title: "The Breathalyzer",
+      description: "Post too fast and our rate limiter will cut you off. The UI shakes and tells you you've had too much. 🛑🍺"
+    },
+    {
+      icon: <Zap className="w-8 h-8 text-primary" />,
+      title: "Certified Drunk Badges",
+      description: "Post between 1:00 AM and 5:00 AM to automatically earn the prestigious 🍻 badge next to your name."
+    },
+    {
+      icon: <Type className="w-8 h-8 text-primary" />,
+      title: "Morning After Regret",
+      description: "Woke up with regrets? Hit the 'Nuke My Night ☢️' button on your profile to instantly vaporize your last 12 hours of posts."
     }
   ];
 

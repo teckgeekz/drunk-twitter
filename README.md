@@ -37,7 +37,7 @@ Think of it as Twitter stripped down to its original DNA: raw, unfiltered, real-
 | 🔄 **Chronological Feed** | Global feed sorted by latest — zero algorithmic manipulation. |
 | 🔍 **Full-Text Search** | Search across post content, author names, and @handles in real-time. |
 | ⚡ **Real-Time Feel** | 10-second polling with optimistic UI updates and ID-based deduplication. |
-| 🛡️ **Rate Limiting** | 5 posts per minute per user via Redis sorted sets. |
+| 🛡️ **The Breathalyzer** | Rate limiting at 5 posts per minute. Hitting the limit triggers a UI shake and a Breathalyzer warning. |
 
 ### Authentication & Identity
 | Feature | Description |
@@ -52,6 +52,8 @@ Think of it as Twitter stripped down to its original DNA: raw, unfiltered, real-
 | Feature | Description |
 |---|---|
 | 📣 **@Mentions** | Tag users with `@handle` — mentions are highlighted in purple across the feed. |
+| 🍻 **Certified Drunk Badge** | Posts created between 1:00 AM and 5:00 AM automatically receive a 🍻 badge. |
+| 🗣️ **Messy Replies** | "Replying to @handle" system that keeps posts in the flat chronological feed, simulating a chaotic loud room. |
 | 🔔 **Live Notifications** | Mentioned users receive real-time notifications with unread badge counts. |
 | 👤 **User Profiles** | Profile page with avatar, display name, handle, post count, and personal post history. |
 | ✏️ **Compose Anywhere** | Floating compose modal accessible from any page via the sidebar. |
@@ -60,6 +62,7 @@ Think of it as Twitter stripped down to its original DNA: raw, unfiltered, real-
 | Feature | Description |
 |---|---|
 | 🗑️ **Super Admin Moderation** | Designated admin UID can delete any post platform-wide. |
+| 💣 **Morning After Regret** | Users can delete their own posts, or use the "Nuke My Night ☢️" button to instantly wipe all their posts from the last 12 hours. |
 | ✅ **Two-Click Confirm** | Delete actions require confirmation to prevent accidental removal. |
 | 🔒 **Role-Based Access** | Admin status verified server-side on every request — no client-side bypasses. |
 
