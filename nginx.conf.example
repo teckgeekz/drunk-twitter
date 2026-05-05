@@ -1,0 +1,80 @@
+# Drunk Twitter (BhangBosdha) - Nginx Production Configuration Example
+# 
+# Instructions:
+# 1. Copy this file to your Nginx sites-available directory: 
+#    sudo cp nginx.conf.example /etc/nginx/sites-available/drunk-twitter
+# 2. Update the "server_name" directive with your actual domain name.
+# 3. Create a symlink to enable the site:
+#    sudo ln -s /etc/nginx/sites-available/drunk-twitter /etc/nginx/sites-enabled/
+# 4. Test the configuration: sudo nginx -t
+# 5. Reload Nginx: sudo systemctl reload nginx
+# 6. Secure with SSL using Certbot: sudo certbot --nginx -d yourdomain.com
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name yourdomain.com www.yourdomain.com; # Replace with your domain
+
+    # Security Headers
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-XSS-Protection "1; mode=block";
+    add_header X-Content-Type-Options "nosniff";
+    add_header Referrer-Policy "strict-origin-when-cross-origin";
+
+    # Gzip Compression
+    gzip on;
+    gzip_proxied any;
+    gzip_comp_level 4;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+    # ─── BACKEND API ───
+    # Route all requests starting with /api/ to the Fastify backend on port 8080
+    location /api/ {
+        proxy_pass http://127.0.0.1:8080/api/;
+        
+        # Proxy Headers
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        # Fastify handles the rate limiting, but we can prevent large payloads
+        client_max_body_size 1M; # API mostly receives text
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # ─── FRONTEND APP ───
+    # Route all other requests to the Next.js frontend on port 3000
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        
+        # Proxy Headers
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # Static assets (Next.js handles this well, but Nginx can cache it too)
+    location ~* \.(?:ico|css|js|gif|jpe?g|png|woff2?|eot|ttf|svg|webp)$ {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
+    }
+
+    # Deny access to hidden files (e.g. .env, .git)
+    location ~ /\. {
+        deny all;
+        access_log off;
+        log_not_found off;
+    }
+}
