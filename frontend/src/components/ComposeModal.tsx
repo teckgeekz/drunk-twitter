@@ -9,6 +9,7 @@ import { auth } from "@/lib/firebase";
 
 import { Post } from "./PostItem";
 import { PermissionsModal } from "./PermissionsModal";
+import { EmojiSelector } from "./EmojiSelector";
 
 export function ComposeModal({ isOpen, onClose, onPostSuccess, replyTo }: {
   isOpen: boolean;
@@ -91,6 +92,28 @@ export function ComposeModal({ isOpen, onClose, onPostSuccess, replyTo }: {
   const displayName = user?.displayName || user?.email?.split('@')[0] || "Anonymous";
   const avatarLetter = displayName[0].toUpperCase();
 
+  const handleEmojiSelect = (emoji: string) => {
+    if (!textareaRef.current) return;
+    
+    const start = textareaRef.current.selectionStart;
+    const end = textareaRef.current.selectionEnd;
+    const text = content;
+    const before = text.substring(0, start);
+    const after = text.substring(end);
+    
+    const newContent = before + emoji + after;
+    setContent(newContent);
+    
+    // Reset focus and cursor position after state update
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        const newPos = start + emoji.length;
+        textareaRef.current.setSelectionRange(newPos, newPos);
+      }
+    }, 10);
+  };
+
   // Render @mentions with highlight
   const renderPreview = () => {
     return content.replace(/@([a-z0-9_]{3,30})/gi, '<span class="text-primary">@$1</span>');
@@ -157,6 +180,7 @@ export function ComposeModal({ isOpen, onClose, onPostSuccess, replyTo }: {
                     className="w-full bg-transparent text-white text-lg placeholder:text-text-muted resize-none focus:outline-none min-h-[120px] overflow-hidden"
                     disabled={isSubmitting}
                   />
+                  <EmojiSelector onSelect={handleEmojiSelect} disabled={isSubmitting} />
                 </div>
               </div>
 

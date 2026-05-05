@@ -7,6 +7,7 @@ import { Send, AlertCircle } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { getApiUrl } from "@/lib/api";
 import { PermissionsModal } from "./PermissionsModal";
+import { EmojiSelector } from "./EmojiSelector";
 
 export function PostBox({ onPostSuccess }: { onPostSuccess: (post: any) => void }) {
   const { user } = useAuth();
@@ -28,6 +29,28 @@ export function PostBox({ onPostSuccess }: { onPostSuccess: (post: any) => void 
       textareaRef.current.style.height = `${Math.max(64, textareaRef.current.scrollHeight)}px`;
     }
   }, [content]);
+
+  const handleEmojiSelect = (emoji: string) => {
+    if (!textareaRef.current) return;
+    
+    const start = textareaRef.current.selectionStart;
+    const end = textareaRef.current.selectionEnd;
+    const text = content;
+    const before = text.substring(0, start);
+    const after = text.substring(end);
+    
+    const newContent = before + emoji + after;
+    setContent(newContent);
+    
+    // Reset focus and cursor position after state update
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        const newPos = start + emoji.length;
+        textareaRef.current.setSelectionRange(newPos, newPos);
+      }
+    }, 10);
+  };
 
   const handleSubmit = async () => {
     if (!isValid || !user) return;
@@ -95,6 +118,7 @@ export function PostBox({ onPostSuccess }: { onPostSuccess: (post: any) => void 
             className="w-full bg-transparent text-white text-lg placeholder:text-text-muted resize-none focus:outline-none min-h-[64px] overflow-hidden"
             disabled={isSubmitting}
           />
+          <EmojiSelector onSelect={handleEmojiSelect} disabled={isSubmitting} />
           
           <AnimatePresence>
             {error && (
