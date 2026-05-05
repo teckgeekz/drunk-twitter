@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     description: "The microblogging platform where your inner voice gets a megaphone. No algorithms. No likes. Just raw thoughts.",
     siteName: "Drunk Twitter",
     type: "website",
-    images: ["/og-d.jpg"],
+    images: ["https://bhangbhosdha.com/og-d.jpg"],
     url: "https://bhangbhosdha.com",
   },
   twitter: {
