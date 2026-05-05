@@ -11,5 +11,5 @@ export const getApiUrl = () => {
   
   // On the server (SSR), default to the backend container name if in Docker, 
   // or localhost if running locally.
-  return "http://localhost:8080";
+  return "http://backend:8080";
 };
