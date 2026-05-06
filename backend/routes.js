@@ -294,19 +294,39 @@ async function routes(fastify, options) {
     const limit = 30;
 
     try {
-      const cachedPosts = await redis.lRange('feed:global', 0, 999);
       let posts = [];
       
+      // 1. Try fetching from Redis first
+      const cachedPosts = await redis.lRange('feed:global', 0, 999);
       if (cachedPosts && cachedPosts.length > 0) {
         posts = cachedPosts.map(p => JSON.parse(p));
-      } else {
+        
+        // Filter by cursor if provided
+        if (cursor) {
+          const cursorTime = new Date(cursor).getTime();
+          posts = posts.filter(p => new Date(p.createdAt).getTime() < cursorTime);
+        }
+      }
+
+      // 2. If we don't have enough posts from Redis, or we are deep in the history, query MongoDB
+      if (posts.length < limit) {
+        const remainingLimit = limit - posts.length;
+        const dbQuery = {};
+        
+        if (cursor) {
+          dbQuery.createdAt = { $lt: new Date(cursor) };
+        } else if (posts.length > 0) {
+          // If we got some from Redis but not enough, get the rest from Mongo starting from the last Redis post
+          dbQuery.createdAt = { $lt: new Date(posts[posts.length - 1].createdAt) };
+        }
+
         const dbPosts = await db.collection('posts')
-          .find()
+          .find(dbQuery)
           .sort({ createdAt: -1 })
-          .limit(1000)
+          .limit(remainingLimit)
           .toArray();
           
-        posts = dbPosts.map(p => ({
+        const formattedDbPosts = dbPosts.map(p => ({
           id: p._id.toString(),
           userId: p.userId,
           authorName: p.authorName || 'Anonymous',
@@ -314,16 +334,11 @@ async function routes(fastify, options) {
           content: p.content,
           createdAt: p.createdAt.toISOString()
         }));
+
+        posts = [...posts, ...formattedDbPosts];
       }
 
-      if (cursor) {
-        const cursorTime = new Date(cursor).getTime();
-        posts = posts.filter(p => new Date(p.createdAt).getTime() < cursorTime);
-      }
-
-      posts = posts.slice(0, limit);
       const nextCursor = posts.length > 0 ? posts[posts.length - 1].createdAt : null;
-
       return { posts, nextCursor };
     } catch (err) {
       fastify.log.error(err);
