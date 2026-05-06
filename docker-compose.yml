@@ -5,7 +5,7 @@ services:
     image: mongo:6
     container_name: bhangbhosdha-mongo
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
       - mongo-data:/data/db
     restart: unless-stopped
@@ -14,7 +14,7 @@ services:
     image: redis:7
     container_name: bhangbhosdha-redis
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     command: ["redis-server", "--maxmemory-policy", "allkeys-lru"]
     restart: unless-stopped
 
@@ -23,7 +23,7 @@ services:
       context: ./backend
     container_name: bhangbhosdha-backend
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
       - MONGO_URI=mongodb://mongodb:27017/bhangbhosdha
       - REDIS_URL=redis://redis:6379
@@ -51,7 +51,7 @@ services:
         - NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID=${NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID}
     container_name: bhangbhosdha-frontend
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       - NEXT_PUBLIC_FIREBASE_API_KEY=${NEXT_PUBLIC_FIREBASE_API_KEY}
       - NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN}
