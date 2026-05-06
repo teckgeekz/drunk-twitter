@@ -218,7 +218,7 @@ async function routes(fastify, options) {
     const results = await pipeline.exec();
     const count = results[2];
     
-    if (count > 5) {
+    if (count > 3) {
       return reply.code(429).send({ 
         error: true, 
         message: "Whoa, slow down! You've had too much. Wait a minute before posting again 🛑🍺",
