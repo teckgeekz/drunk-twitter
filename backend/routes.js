@@ -7,16 +7,16 @@ async function routes(fastify, options) {
   // ─── Helper: Generate a Drunk Anonymous Name ───
   function generateDrunkName() {
     const adjectives = [
-      'Tipsy', 'Buzzed', 'Wasted', 'Blurred', 'Slurred', 
-      'Drunken', 'Jolly', 'Dizzy', 'Loopy', 'Wobbly', 
-      'Smashed', 'Pickled', 'Toasty', 'Merry', 'Groggy'
+      'Tipsy', 'Baba', 'Wasted', 'Blurred', 'Slurred',
+      'Drunken', 'Jolly', 'Dizzy', 'Loopy', 'Wobbly', 'Fanny',
+      'Bhang', 'Pickled', 'Toasty', 'Merry', 'Groggy', 'Sutta', 'Ratri', 'Kaluwa'
     ];
     const animals = [
-      'Panda', 'Penguin', 'Koala', 'Sloth', 'Raccoon', 
-      'Squirrel', 'Hedgehog', 'Otter', 'Capybara', 'RedPanda',
-      'Badger', 'Walrus', 'Hippo', 'Beaver', 'T-Rex'
+      'Panda', 'Penguin', 'Koala', 'Chuppa', 'Raccoon',
+      'Squirrel', 'Hedgehog', 'Otter', 'Capybara', 'RedPanda', 'Botal',
+      'Badger', 'Lota', 'Hippo', 'Beaver', 'T-Rex', 'Lohar', 'Singh', 'Singham',
     ];
-    
+
     const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
     const anim = animals[Math.floor(Math.random() * animals.length)];
     return `${adj} ${anim}`;
@@ -29,7 +29,7 @@ async function routes(fastify, options) {
       const isAnonymous = !name && !email;
       const baseName = name || email?.split('@')[0] || generateDrunkName();
       const handle = baseName.toLowerCase().replace(/[^a-z0-9_ ]/g, '').replace(/\s+/g, '') || `user${Date.now()}`;
-      
+
       // Ensure handle uniqueness by appending random digits if needed
       let finalHandle = handle;
       let attempts = 0;
@@ -77,7 +77,7 @@ async function routes(fastify, options) {
         .sort({ createdAt: -1 })
         .limit(1000)
         .toArray();
-      
+
       if (posts.length > 0) {
         const pipeline = redis.multi();
         for (let i = posts.length - 1; i >= 0; i--) {
@@ -198,7 +198,7 @@ async function routes(fastify, options) {
     if (!content || typeof content !== 'string') {
       return reply.code(400).send({ error: true, message: 'Content is required and must be a string' });
     }
-    
+
     const sanitizedContent = content.trim();
     if (sanitizedContent.length === 0 || sanitizedContent.length > 650) {
       return reply.code(400).send({ error: true, message: 'Content length must be between 1 and 650 characters' });
@@ -214,13 +214,13 @@ async function routes(fastify, options) {
     pipeline.zRemRangeByScore(rateKey, '-inf', now - 60000);
     pipeline.zCard(rateKey);
     pipeline.expire(rateKey, 60);
-    
+
     const results = await pipeline.exec();
     const count = results[2];
-    
+
     if (count > 3) {
-      return reply.code(429).send({ 
-        error: true, 
+      return reply.code(429).send({
+        error: true,
         message: "Whoa, slow down! You've had too much. Wait a minute before posting again 🛑🍺",
         code: "BREATHALYZER"
       });
@@ -256,13 +256,13 @@ async function routes(fastify, options) {
     const mentionRegex = /@([a-z0-9_]{3,30})/gi;
     const mentions = [...sanitizedContent.matchAll(mentionRegex)].map(m => m[1].toLowerCase());
     const uniqueMentions = [...new Set(mentions)];
-    
+
     if (uniqueMentions.length > 0) {
       // Find mentioned users (exclude self)
       const mentionedUsers = await db.collection('users')
         .find({ handle: { $in: uniqueMentions }, userId: { $ne: userId } })
         .toArray();
-      
+
       if (mentionedUsers.length > 0) {
         const notifications = mentionedUsers.map(u => ({
           userId: u.userId,
@@ -295,12 +295,12 @@ async function routes(fastify, options) {
 
     try {
       let posts = [];
-      
+
       // 1. Try fetching from Redis first
       const cachedPosts = await redis.lRange('feed:global', 0, 999);
       if (cachedPosts && cachedPosts.length > 0) {
         posts = cachedPosts.map(p => JSON.parse(p));
-        
+
         // Filter by cursor if provided
         if (cursor) {
           const cursorTime = new Date(cursor).getTime();
@@ -312,7 +312,7 @@ async function routes(fastify, options) {
       if (posts.length < limit) {
         const remainingLimit = limit - posts.length;
         const dbQuery = {};
-        
+
         if (cursor) {
           dbQuery.createdAt = { $lt: new Date(cursor) };
         } else if (posts.length > 0) {
@@ -325,7 +325,7 @@ async function routes(fastify, options) {
           .sort({ createdAt: -1 })
           .limit(remainingLimit)
           .toArray();
-          
+
         const formattedDbPosts = dbPosts.map(p => ({
           id: p._id.toString(),
           userId: p.userId,
@@ -445,16 +445,16 @@ async function routes(fastify, options) {
   fastify.delete('/posts/nuke', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const userId = request.user.userId;
     const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000);
-    
+
     try {
       // Find posts to delete
       const postsToDelete = await db.collection('posts').find({
         userId,
         createdAt: { $gte: twelveHoursAgo }
       }).toArray();
-      
+
       const postIds = postsToDelete.map(p => p._id.toString());
-      
+
       if (postIds.length === 0) {
         return { success: true, message: 'No posts to nuke.', deletedCount: 0 };
       }
